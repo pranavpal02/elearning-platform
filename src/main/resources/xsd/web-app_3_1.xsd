@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://xmlns.jcp.org/xml/ns/javaee"
+           xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+           xmlns:javaee="http://xmlns.jcp.org/xml/ns/javaee"
+           elementFormDefault="qualified">
+
+  <xs:annotation>
+    <xs:documentation>
+      DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+      Copyright (c) 2009-2013 Oracle and/or its affiliates. All rights reserved.
+      The contents of this file are subject to the terms of either the GNU
+      General Public License Version 2 only ("GPL") or the Common Development
+      and Distribution License("CDDL") (collectively, the "License"). You may not
+      use this file except in compliance with the License. You can obtain a copy of
+      the License at https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+      or packager/legal/LICENSE.txt. See the License for the specific language
+      governing permissions and limitations under the License.
+    </xs:documentation>
+  </xs:annotation>
+
+  <xs:annotation>
+    <xs:documentation>
+      <![CDATA[
+      This is the XML Schema for the Servlet 3.1 deployment descriptor.
+      The deployment descriptor must be named "WEB-INF/web.xml" in the
+      web application's war file. All Servlet deployment descriptors
+      must indicate the web application schema by using the Java EE
+      namespace:
+
+      http://xmlns.jcp.org/xml/ns/javaee
+
+      and by indicating the version of the schema by 
+      using the version element as shown below:
+
+      <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="..."
+      version="3.1">
+      ...
+      </web-app>
+
+      The instance documents may indicate the published version of
+      the schema using the xsi:schemaLocation attribute for Java EE
+      namespace with the following location:
+
+      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd
+      ]]>
+    </xs:documentation>
+  </xs:annotation>
+
+  <!-- web-app element that serves as the root of the deployment descriptor -->
+  <xs:element name="web-app" type="javaee:web-appType">
+    <xs:annotation>
+      <xs:documentation>
+        The web-app element is the root of the deployment descriptor for a web application.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:unique name="web-common-servlet-name-uniqueness">
+      <xs:annotation>
+        <xs:documentation>
+          The servlet element contains the name of a servlet. The name must be unique within the web application.
+        </xs:documentation>
+      </xs:annotation>
+      <xs:selector xpath="javaee:servlet"/>
+      <xs:field xpath="javaee:servlet-name"/>
+    </xs:unique>
+    <!-- Additional uniqueness constraints for filters, ejb, and resources can be added here -->
+  </xs:element>
+
+  <!-- Define the web-appType complex type without the web-commonType -->
+  <xs:complexType name="web-appType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="module-name" type="xs:string" minOccurs="0"/>
+      <xs:element name="deny-uncovered-http-methods" type="xs:token">
+        <xs:annotation>
+          <xs:documentation>
+            When specified, this element causes uncovered HTTP methods (e.g., GET, POST, etc.)
+            to be denied for servlet and filter mappings.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+
+</xs:schema>
