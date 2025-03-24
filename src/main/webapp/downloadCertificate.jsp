@@ -1,36 +1,60 @@
-<%@ page import="java.io.*, java.sql.*, com.elearning.db.DBConnection" %>
+<%@ page import="java.io.*, java.util.*, java.text.SimpleDateFormat" %>
+<%@ page import="javax.servlet.*, javax.servlet.http.*" %>
+<%@ page import="com.itextpdf.text.*, com.itextpdf.text.pdf.*" %>
+<%@ page import="com.elearning.beans.User, com.elearning.db.CertificateDAO, com.elearning.db.CourseDAO" %>
+<%@ page import="com.elearning.beans.Certificate, com.elearning.beans.Course" %>
 
 <%
-    int certId = Integer.parseInt(request.getParameter("id"));
+    response.setContentType("application/pdf");
+    response.setHeader("Content-Disposition", "attachment; filename=certificate.pdf");
 
-    Connection connection = DBConnection.getConnection();
-    String query = "SELECT * FROM certificates WHERE id = ?";
+    // Get the certificate ID from the request
+    int certificateId = Integer.parseInt(request.getParameter("id"));
 
-    try (PreparedStatement ps = connection.prepareStatement(query)) {
-        ps.setInt(1, certId);
-        ResultSet rs = ps.executeQuery();
-
-        if (rs.next()) {
-            String fileName = "certificate_" + certId + ".pdf"; // Change to actual file name
-            response.setContentType("application/pdf");
-            response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
-
-            // Assuming the certificate is stored as a PDF in the database
-            InputStream inputStream = rs.getBinaryStream("certificate_file"); // Adjust column name
-            OutputStream outputStream = response.getOutputStream();
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            inputStream.close();
-            outputStream.close();
-        } else {
-            out.println("Certificate not found.");
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
+    User user = (User) session.getAttribute("currentUser");
+    if (user == null) {
+        response.sendRedirect("login.jsp");
+        return;
     }
+
+    CertificateDAO certDAO = new CertificateDAO();
+    Certificate cert = certDAO.getCertificateById(certificateId);
+
+    CourseDAO courseDAO = new CourseDAO();
+    Course course = courseDAO.getCourseById(cert.getCourseId());
+
+    if (cert == null || course == null) {
+        out.println("Invalid certificate or course.");
+        return;
+    }
+
+    OutputStream outStream = response.getOutputStream();
+    Document document = new Document();
+    PdfWriter.getInstance(document, outStream);
+
+    document.open();
+
+    Font titleFont = new Font(Font.FontFamily.HELVETICA, 22, Font.BOLD, BaseColor.DARK_GRAY);
+    Font infoFont = new Font(Font.FontFamily.HELVETICA, 14, Font.NORMAL, BaseColor.BLACK);
+
+    document.add(new Paragraph("Certificate of Completion", titleFont));
+    document.add(Chunk.NEWLINE);
+
+    document.add(new Paragraph("This certifies that", infoFont));
+    document.add(new Paragraph(user.getFullName(), new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD)));
+    document.add(Chunk.NEWLINE);
+
+    document.add(new Paragraph("has successfully completed the course", infoFont));
+    document.add(new Paragraph(course.getCourseName(), new Font(Font.FontFamily.HELVETICA, 16, Font.BOLDITALIC)));
+    document.add(Chunk.NEWLINE);
+
+    SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
+    String certDate = sdf.format(cert.getCertificateDate());
+    document.add(new Paragraph("Date of Completion: " + certDate, infoFont));
+    document.add(Chunk.NEWLINE);
+    document.add(Chunk.NEWLINE);
+
+    document.add(new Paragraph("E-Learning Platform", infoFont));
+
+    document.close();
 %>

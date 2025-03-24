@@ -101,6 +101,8 @@
             <% } else {
                 for (Certificate cert : certificates) {
                     Course course = courseDAO.getCourseById(cert.getCourseId());
+                    // Debugging line to check if course is null
+                    System.out.println("Course for certificate ID " + cert.getId() + ": " + (course == null ? "Not found" : course.getCourseName()));
             %>
                 <tr>
                     <td><%= course != null ? course.getCourseName() : "Unknown Course" %></td>
@@ -117,3 +119,4 @@
 
 </body>
 </html>
+

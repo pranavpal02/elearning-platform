@@ -60,4 +60,9 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
+
+    // New method added to fix JSP error
+    public String getFullName() {
+        return username; // Assuming username is the full name for now
+    }
 }

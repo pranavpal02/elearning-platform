@@ -1,8 +1,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.elearning.beans.Course" %>
 <%@ page import="com.elearning.db.CourseDAO" %>
-<%@ page import="com.elearning.beans.Certificate" %>
-<%@ page import="com.elearning.db.CertificateDAO" %>
+<%@ page import="com.elearning.beans.User" %>
 
 <%
     CourseDAO courseDAO = new CourseDAO();
@@ -11,7 +10,9 @@
     List<Course> webDevelopmentCourses = courseDAO.getCoursesByCategory("Web Development");
     List<Course> otherCourses = courseDAO.getCoursesByCategory("Other");
 
-    String username = (String) session.getAttribute("username");
+    // Get the current user from the session
+    User currentUser = (User) session.getAttribute("currentUser");
+    String username = (currentUser != null) ? currentUser.getUsername() : "Guest";
 %>
 
 <!DOCTYPE html>
@@ -26,6 +27,7 @@
             display: flex;
             min-height: 100vh;
             margin: 0;
+            overflow-x: hidden;
         }
 
         header {
@@ -36,6 +38,7 @@
             width: 100%;
         }
 
+        /* Sidebar */
         .sidebar {
             height: 100%;
             width: 250px;
@@ -43,12 +46,14 @@
             color: white;
             position: fixed;
             top: 0;
-            left: 0;
-            padding-top: 20px;
+            left: -250px; /* Initially hidden */
+            padding-top: 60px; /* Push content down to avoid overlap */
+            transition: left 0.3s ease;
+            z-index: 1000;
         }
 
         .sidebar a {
-            padding: 10px 15px;
+            padding: 12px 20px;
             text-decoration: none;
             font-size: 18px;
             color: white;
@@ -64,19 +69,35 @@
             background-color: #4CAF50;
         }
 
+        /* Sidebar Toggle Button */
+        .menu-toggle {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            z-index: 1100;
+            background-color: #333;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
         .main-content {
-            margin-left: 250px;
+            margin-left: 0;
             padding: 20px;
             width: 100%;
+            transition: margin-left 0.3s ease;
         }
 
         .slider {
             width: 100%;
             height: 400px;
-            background: url('images/ai-course.jpg') center center no-repeat;
+            background: url('images/AI slider image.jpg') center center no-repeat;
             background-size: cover;
             position: relative;
-            cursor: pointer;
         }
 
         .slider h2 {
@@ -141,22 +162,27 @@
         .course-item a:hover {
             background-color: #45a049;
         }
+
     </style>
 </head>
 <body>
 
-<div class="sidebar">
-    <h2 style="color: white; text-align: center;">Menu</h2>
+<!-- Sidebar Toggle Button -->
+<button class="menu-toggle" onclick="toggleSidebar()">-</button>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
     <a href="dashboard.jsp" class="active">Dashboard</a>
-    <a href="addCourse.jsp">Add Course</a>
-    <a href="courseList.jsp">Course List</a>
+    <a href="add-course.jsp">Add Course</a>
+    <a href="course-list.jsp">Course List</a>
     <a href="certifications.jsp">Certifications</a>
     <a href="logout.jsp">Logout</a>
 </div>
 
-<div class="main-content">
+<!-- Main Content -->
+<div class="main-content" id="main-content">
     <header>
-        <h1>Welcome, <%= username != null ? username : "User" %></h1>
+        <h1>Welcome, <%= username %></h1>
         <h2>What would you like to learn today?</h2>
     </header>
 
@@ -164,9 +190,11 @@
         <h2>Artificial Intelligence - The Most Popular Course</h2>
     </div>
 
-    <% String[] categories = {"Cyber Security", "AI", "Web Development", "Other"};
-       List<List<Course>> courses = List.of(cyberSecurityCourses, aiCourses, webDevelopmentCourses, otherCourses);
-       for (int i = 0; i < categories.length; i++) { %>
+    <% 
+    String[] categories = {"Cyber Security", "AI", "Web Development", "Other"};
+    List<List<Course>> courses = List.of(cyberSecurityCourses, aiCourses, webDevelopmentCourses, otherCourses);
+    for (int i = 0; i < categories.length; i++) { 
+    %>
         <div class="course-section">
             <h3><%= categories[i] %> Courses</h3>
             <div class="course-list">
@@ -181,6 +209,21 @@
         </div>
     <% } %>
 </div>
+
+<script>
+    function toggleSidebar() {
+        var sidebar = document.getElementById("sidebar");
+        var content = document.getElementById("main-content");
+
+        if (sidebar.style.left === "0px") {
+            sidebar.style.left = "-250px";
+            content.style.marginLeft = "0";
+        } else {
+            sidebar.style.left = "0px";
+            content.style.marginLeft = "250px";
+        }
+    }
+</script>
 
 </body>
 </html>
